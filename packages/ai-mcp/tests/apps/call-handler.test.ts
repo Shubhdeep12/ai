@@ -33,6 +33,7 @@ type TransportDescriptor = TransportConfig
 type ServerInfo = {
   transport: TransportDescriptor | undefined
   prefix: string | undefined
+  toolFilter?: (tool: { name: string }) => boolean
 }
 
 // A method the call handler must never reach in these tests. Calling it is a
@@ -116,6 +117,19 @@ describe('createMcpAppCallHandler', () => {
     })
     expect(callToolMock).toHaveBeenCalledWith('place_order', { qty: 1 })
     expect(closeMock).toHaveBeenCalled()
+  })
+
+  it('reconnects with the client toolFilter so widgets see the same tools as the model', async () => {
+    const toolFilter = (tool: { name: string }) => tool.name !== 'place_order'
+    const handler = createMcpAppCallHandler({
+      clients: fakePool({ weather: { ...WEATHER_HTTP, toolFilter } }),
+    })
+    await handler({ threadId: 't1', serverId: 'weather', toolName: 'x' })
+    expect(createMCPClient).toHaveBeenCalledWith({
+      transport: { type: 'http', url: 'https://x/mcp' },
+      prefix: 'weather',
+      toolFilter,
+    })
   })
 
   it('single-client path: defaults to the sole unnamed client when serverId is undefined', async () => {
