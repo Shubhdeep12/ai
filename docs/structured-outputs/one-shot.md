@@ -168,7 +168,7 @@ Prefer a schema library when you can — type inference is worth it.
 
 If the model's response doesn't satisfy your schema, `chat()` throws a validation error. The message includes the failing fields.
 
-```typescript group=one-shot
+```typescript
 import { chat } from "@tanstack/ai";
 import { openaiText } from "@tanstack/ai-openai";
 import { MySchema } from "./schemas";
@@ -193,7 +193,11 @@ Provider-level errors (auth failure, rate limit, network) throw the same way —
 
 When the provider rejects the request, the message can be short, for example `Provider returned error`. The provider's full error body is on `error.cause`:
 
-```typescript group=one-shot
+```typescript
+import { chat } from "@tanstack/ai";
+import { openaiText } from "@tanstack/ai-openai";
+import { MySchema } from "./schemas";
+
 try {
   const result = await chat({
     adapter: openaiText("gpt-6-astra"),
