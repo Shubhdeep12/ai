@@ -132,6 +132,23 @@ describe('createMcpAppCallHandler', () => {
     })
   })
 
+  it('keeps the client toolFilter when a store returns a descriptor without it', async () => {
+    // A persistent store serializes descriptors, and a function does not survive that.
+    const toolFilter = (tool: { name: string }) => tool.name !== 'place_order'
+    const store = inMemoryMcpSessionStore()
+    await store.set('t1', { weather: JSON.parse(JSON.stringify(WEATHER_HTTP)) })
+    const handler = createMcpAppCallHandler({
+      clients: fakePool({ weather: { ...WEATHER_HTTP, toolFilter } }),
+      store,
+    })
+    await handler({ threadId: 't1', serverId: 'weather', toolName: 'x' })
+    expect(createMCPClient).toHaveBeenCalledWith({
+      transport: { type: 'http', url: 'https://x/mcp' },
+      prefix: 'weather',
+      toolFilter,
+    })
+  })
+
   it('single-client path: defaults to the sole unnamed client when serverId is undefined', async () => {
     const handler = createMcpAppCallHandler({
       clients: fakeClient({
